@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f0e0c" />
+<title>BOGA Shoe Collection · 管理後台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --gold:#c9a96e;
+    --gold2:#b8924f;
+    --gold-l:rgba(201,169,110,0.10);
+    --gold-m:rgba(201,169,110,0.22);
+    --bg:#0f0e0c;
+    --bg2:#161512;
+    --bg3:#1e1c18;
+    --bg4:#252220;
+    --text:#f0ede8;
+    --text2:#a09890;
+    --text3:#5a5550;
+    --line:rgba(240,237,232,0.08);
+    --line2:rgba(240,237,232,0.14);
+    --green:#7fb37f;
+    --red:#d28a8a;
+    --serif:'Cormorant Garamond', 'Noto Serif TC', serif;
+    --sans:'DM Sans', 'Noto Sans TC', system-ui, sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
+  input,textarea,select{font-family:inherit;font-size:14px;color:var(--text)}
+  img{display:block;max-width:100%}
+  .serif{font-family:var(--serif);font-weight:500;letter-spacing:0.02em}
+
+  /* ============= Login ============= */
+  .login{
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:32px 20px;
+    background:radial-gradient(800px 400px at 50% 0%, rgba(201,169,110,0.10), transparent 70%), var(--bg);
+  }
+  .login-card{
+    width:100%;max-width:380px;
+    background:var(--bg2);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:40px 32px 32px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  .login-mark{
+    text-align:center;margin-bottom:32px;
+  }
+  .login-mark .m{
+    font-family:'Arial Black','Arial Bold',Arial,sans-serif;font-size:36px;font-weight:900;
+    letter-spacing:0.18em;color:var(--gold);
+  }
+  .login-mark .s{
+    margin-top:8px;font-size:10px;letter-spacing:0.4em;color:var(--text3);text-transform:uppercase;
+  }
+  .login h1{
+    font-family:var(--serif);font-size:24px;font-weight:500;margin:0 0 6px;
+  }
+  .login .lead{color:var(--text2);font-size:13px;margin:0 0 24px}
+  .login .field{margin-bottom:14px}
+  .login label{
+    display:block;font-size:10px;letter-spacing:0.18em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;margin-bottom:6px;
+  }
+  .login input{
+    width:100%;padding:12px 14px;
+    background:var(--bg3);border:1px solid var(--line2);border-radius:8px;
+    color:var(--text);font-size:14px;
+  }
+  .login input:focus{outline:none;border-color:var(--gold)}
+  .login .err{color:var(--red);font-size:12px;min-height:18px;margin:6px 0 0}
+  .btn-gold{
+    width:100%;padding:13px;background:var(--gold);color:#0f0e0c;
+    font-weight:600;font-size:13px;letter-spacing:0.1em;border-radius:8px;
+    text-transform:uppercase;transition:background 0.2s, transform 0.1s;
+    margin-top:8px;
+  }
+  .btn-gold:active{transform:scale(0.98);background:var(--gold2)}
+  .btn-ghost{
+    width:100%;padding:12px;background:transparent;color:var(--text2);
+    border:1px solid var(--line2);border-radius:8px;font-size:12px;letter-spacing:0.06em;
+    margin-top:10px;
+  }
+  .btn-ghost:hover{background:var(--bg3)}
+
+  /* ============= Layout ============= */
+  .shell{display:flex;min-height:100vh}
+  .sidebar{
+    width:240px;flex-shrink:0;
+    background:var(--bg2);
+    border-right:1px solid var(--line);
+    padding:24px 16px;
+    display:flex;flex-direction:column;
+    position:sticky;top:0;
+    height:100vh;
+    z-index:20;
+  }
+  .sb-mark{
+    padding:0 8px 24px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:20px;
+  }
+  .sb-mark .m{
+    font-family:'Arial Black','Arial Bold',Arial,sans-serif;font-size:24px;font-weight:900;
+    letter-spacing:0.2em;color:var(--gold);
+  }
+  .sb-mark .s{
+    font-size:9.5px;letter-spacing:0.32em;color:var(--text3);
+    text-transform:uppercase;margin-top:4px;
+  }
+  .sb-section-label{
+    font-size:9.5px;letter-spacing:0.22em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;
+    padding:0 12px;margin-bottom:8px;
+  }
+  .nav-item{
+    width:100%;display:flex;align-items:center;gap:12px;
+    padding:11px 12px;border-radius:8px;
+    color:var(--text2);font-size:13.5px;font-weight:500;
+    text-align:left;margin-bottom:2px;
+    transition:background 0.15s, color 0.15s;
+    position:relative;
+  }
+  .nav-item svg{width:18px;height:18px;stroke-width:1.7;flex-shrink:0}
+  .nav-item:hover{background:var(--bg3);color:var(--text)}
+  .nav-item.active{background:var(--bg3);color:var(--gold)}
+  .nav-item.active::before{
+    content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;
+    background:var(--gold);border-radius:0 2px 2px 0;
+  }
+  .nav-badge{
+    margin-left:auto;font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:99px;
+    background:var(--gold);color:#0f0e0c;letter-spacing:0.05em;
+  }
+  .sb-foot{
+    margin-top:auto;padding:12px;
+    border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;
+    color:var(--text2);font-size:12px;
+  }
+  .sb-foot .av{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--gold);color:#0f0e0c;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:13px;
+  }
+  .sb-foot .ad-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sb-logout{color:var(--text3)}
+  .sb-logout:hover{color:var(--red)}
+
+  /* main */
+  .main{flex:1;min-width:0}
+  .topbar{
+    position:sticky;top:0;z-index:15;
+    background:rgba(15,14,12,0.85);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--line);
+    padding:18px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .topbar h1{
+    font-family:var(--serif);font-size:24px;font-weight:500;margin:0;
+    letter-spacing:0.02em;
+  }
+  .topbar .crumb{font-size:11px;letter-spacing:0.2em;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+  .topbar .right{display:flex;align-items:center;gap:12px}
+  .hamburger{
+    display:none;
+    width:36px;height:36px;border-radius:8px;
+    align-items:center;justify-content:center;
+    color:var(--text);
+  }
+  .hamburger:hover{background:var(--bg3)}
+  .hamburger svg{width:20px;height:20px}
+
+  .content{padding:28px 32px}
+  .scrim{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    z-index:18;
+    opacity:0;pointer-events:none;
+    transition:opacity 0.25s;
+  }
+  .scrim.show{opacity:1;pointer-events:auto}
+
+  /* ============= Cards ============= */
+  .card{
+    background:var(--bg2);
+    border:1px solid var(--line);
+    border-radius:14px;
+  }
+
+  /* ============= Stats grid ============= */
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .stat{
+    padding:20px 20px 18px;
+  }
+  .stat .lab{
+    font-size:10px;letter-spacing:0.2em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;margin-bottom:14px;
+  }
+  .stat .num{
+    font-family:var(--serif);font-size:42px;font-weight:500;line-height:1;
+    color:var(--text);letter-spacing:-0.02em;
+  }
+  .stat .num.gold{color:var(--gold)}
+  .stat .delta{
+    font-size:11.5px;color:var(--text2);margin-top:10px;display:flex;align-items:center;gap:5px;
+  }
+  .stat .delta .pip{
+    width:6px;height:6px;border-radius:50%;background:var(--green);
+  }
+
+  /* section heading */
+  .sh{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:0 0 14px;
+  }
+  .sh h2{
+    font-family:var(--serif);font-size:22px;font-weight:500;margin:0;
+  }
+  .sh .meta{font-size:11px;letter-spacing:0.18em;color:var(--text3);text-transform:uppercase}
+  .sh .actions{display:flex;gap:8px}
+  .btn-sm{
+    padding:8px 14px;font-size:12px;font-weight:500;
+    border-radius:8px;background:var(--bg3);color:var(--text);
+    border:1px solid var(--line);letter-spacing:0.04em;
+    transition:background 0.15s;
+  }
+  .btn-sm:hover{background:var(--bg4)}
+  .btn-sm.primary{background:var(--gold);color:#0f0e0c;border-color:var(--gold);font-weight:600}
+  .btn-sm.primary:hover{background:var(--gold2)}
+
+  /* ============= Tables/lists ============= */
+  .review-table{padding:0;overflow:hidden}
+  .rt-head{
+    display:grid;
+    grid-template-columns:80px 1.4fr 1fr 1fr 1fr 200px;
+    gap:14px;
+    padding:14px 22px;
+    background:var(--bg3);
+    font-size:10px;letter-spacing:0.2em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;
+    border-bottom:1px solid var(--line);
+  }
+  .rt-row{
+    display:grid;
+    grid-template-columns:80px 1.4fr 1fr 1fr 1fr 200px;
+    gap:14px;
+    padding:16px 22px;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+    transition:background 0.15s;
+  }
+  .rt-row:last-child{border-bottom:0}
+  .rt-row:hover{background:var(--bg3)}
+  .rt-thumb{
+    width:56px;height:56px;border-radius:8px;
+    background:var(--bg3);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;overflow:hidden;
+  }
+  .rt-thumb img{width:100%;height:100%;object-fit:cover}
+  .rt-user .nm{font-size:14px;font-weight:500;margin:0 0 2px}
+  .rt-user .em{font-size:11.5px;color:var(--text3);margin:0}
+  .rt-shoe{font-size:13px;color:var(--text)}
+  .rt-shoe .sk{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:0.08em}
+  .rt-order{font-family:'DM Sans', monospace;font-size:12.5px;color:var(--text2);letter-spacing:0.04em}
+  .rt-time{font-size:12px;color:var(--text3)}
+  .rt-actions{display:flex;gap:6px;justify-content:flex-end}
+  .act-btn{
+    padding:7px 12px;font-size:11.5px;font-weight:500;
+    border-radius:7px;letter-spacing:0.04em;
+    transition:opacity 0.15s, transform 0.1s;
+  }
+  .act-btn:active{transform:scale(0.96)}
+  .act-approve{background:rgba(127,179,127,0.15);color:var(--green);border:1px solid rgba(127,179,127,0.3)}
+  .act-approve:hover{background:rgba(127,179,127,0.25)}
+  .act-reject{background:rgba(210,138,138,0.10);color:var(--red);border:1px solid rgba(210,138,138,0.3)}
+  .act-reject:hover{background:rgba(210,138,138,0.18)}
+  .act-detail{background:var(--bg4);color:var(--text2);border:1px solid var(--line2)}
+  .act-detail:hover{color:var(--text)}
+
+  .empty{
+    padding:48px 24px;text-align:center;color:var(--text3);
+    font-size:13px;
+  }
+  .empty .ic{font-size:32px;margin-bottom:10px;opacity:0.5}
+
+  /* ============= Milestone distribution ============= */
+  .ms-card{padding:22px 24px}
+  .ms-row{
+    display:grid;
+    grid-template-columns:140px 1fr 80px 80px;
+    gap:14px;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .ms-row:last-child{border-bottom:0}
+  .ms-row .nm{font-family:var(--serif);font-size:18px;font-weight:500}
+  .ms-row .nm .sub{font-size:11px;letter-spacing:0.16em;color:var(--text3);text-transform:uppercase;font-family:var(--sans);font-weight:600;margin-top:2px}
+  .ms-bar{
+    height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;
+  }
+  .ms-bar .fill{height:100%;background:linear-gradient(90deg, var(--gold2), var(--gold));border-radius:99px}
+  .ms-row .vt{font-size:14px;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+  .ms-row .vt .sm{font-size:10px;color:var(--text3);letter-spacing:0.16em;text-transform:uppercase;margin-top:2px}
+
+  /* ============= Shoes grid ============= */
+  .shoes-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+  }
+  .shoe-card{
+    background:var(--bg2);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;
+    transition:border-color 0.2s, transform 0.15s;
+    position:relative;
+  }
+  .shoe-card:hover{border-color:var(--line2);transform:translateY(-2px)}
+  .shoe-card:hover .vis-overlay{opacity:1}
+  .shoe-card .vis{
+    aspect-ratio:1/1;
+    background:linear-gradient(160deg, var(--bg3), var(--bg2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:64px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .shoe-card .vis img{width:100%;height:100%;object-fit:cover}
+  .shoe-card .vis-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(15,14,12,0.0) 50%, rgba(15,14,12,0.85) 100%);
+    display:flex;align-items:flex-end;justify-content:center;gap:8px;
+    padding:12px;
+    opacity:0;transition:opacity 0.2s;
+  }
+  .shoe-card .vis-btn{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.18);
+    padding:7px 12px;border-radius:7px;
+    font-size:11.5px;font-weight:500;letter-spacing:0.04em;
+    display:flex;align-items:center;gap:5px;
+    transition:background 0.15s;
+  }
+  .shoe-card .vis-btn:hover{background:rgba(255,255,255,0.22)}
+  .shoe-card .vis-btn.danger:hover{background:rgba(210,138,138,0.4);border-color:rgba(210,138,138,0.6)}
+  .shoe-card .vis-btn svg{width:13px;height:13px;stroke-width:2}
+  /* Mobile: show overlay always */
+  @media (max-width:760px){
+    .shoe-card .vis-overlay{opacity:1;background:linear-gradient(180deg, transparent 60%, rgba(15,14,12,0.9) 100%)}
+  }
+  .shoe-card .info{padding:14px 14px 16px}
+  .shoe-card .nm{font-family:var(--serif);font-size:17px;font-weight:500;margin:0 0 4px}
+  .shoe-card .sk{font-size:10.5px;letter-spacing:0.18em;color:var(--text3);text-transform:uppercase;font-weight:600}
+  .shoe-card .ct{
+    margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--text2);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .shoe-card .ct .num{color:var(--gold);font-weight:600;font-size:13px}
+  .shoe-add{
+    aspect-ratio:1/1.18;
+    border:1px dashed var(--line2);border-radius:12px;
+    background:transparent;color:var(--text2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    transition:border-color 0.2s, color 0.2s;
+    cursor:pointer;
+  }
+  .shoe-add:hover{border-color:var(--gold);color:var(--gold)}
+  .shoe-add .pl{font-size:32px;font-weight:300;line-height:1}
+  .shoe-add .lb{font-size:12px;letter-spacing:0.1em}
+
+  /* ============= Members leaderboard ============= */
+  .lb-table{padding:0;overflow:hidden}
+  .lb-row{
+    display:grid;
+    grid-template-columns:40px 50px 1.4fr 140px 1fr 80px;
+    gap:16px;
+    padding:14px 22px;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+  }
+  .lb-row:last-child{border-bottom:0}
+  .lb-rank{
+    font-family:var(--serif);font-size:22px;font-weight:500;
+    color:var(--text2);text-align:center;
+  }
+  .lb-row.top1 .lb-rank{color:var(--gold)}
+  .lb-av{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(160deg, var(--gold), var(--gold2));
+    color:#0f0e0c;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:600;font-size:18px;
+  }
+  .lb-user .nm{font-size:14px;font-weight:500;margin:0}
+  .lb-user .em{font-size:11.5px;color:var(--text3);margin:2px 0 0}
+  .lb-rank-tag{
+    display:inline-block;padding:4px 10px;
+    background:var(--gold-l);color:var(--gold);
+    border-radius:99px;font-size:10.5px;
+    letter-spacing:0.12em;font-weight:600;text-transform:uppercase;
+    border:1px solid var(--gold-m);
+  }
+  .lb-bar{display:flex;align-items:center;gap:10px}
+  .lb-bar .b{flex:1;height:5px;background:var(--bg3);border-radius:99px;overflow:hidden}
+  .lb-bar .f{height:100%;background:var(--gold);border-radius:99px}
+  .lb-bar .v{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums}
+  .lb-count{font-family:var(--serif);font-size:22px;color:var(--gold);font-weight:500;text-align:right}
+
+  /* ============= Gifts page ============= */
+  .gift-row{
+    display:flex;align-items:center;gap:18px;
+    padding:20px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .gift-row:last-child{border-bottom:0}
+  .gift-ic{
+    width:60px;height:60px;border-radius:14px;
+    background:var(--bg3);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;flex-shrink:0;
+  }
+  .gift-info{flex:1;min-width:0}
+  .gift-info .stage{
+    font-size:10px;letter-spacing:0.2em;color:var(--gold);
+    text-transform:uppercase;font-weight:600;margin-bottom:4px;
+  }
+  .gift-info .nm{font-family:var(--serif);font-size:19px;font-weight:500;margin:0 0 3px}
+  .gift-info .desc{font-size:12.5px;color:var(--text2);margin:0}
+
+  .healing-grid{
+    display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;padding:18px 24px 22px;
+  }
+  .heal-c{
+    background:var(--bg3);border:1px solid var(--line);
+    border-radius:10px;padding:14px 12px;
+    transition:border-color 0.2s;
+    cursor:pointer;
+  }
+  .heal-c:hover{border-color:var(--gold-m)}
+  .heal-c .deco{font-size:24px;margin-bottom:6px}
+  .heal-c .qt{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--gold);margin:0 0 4px}
+  .heal-c .bd{font-size:11px;color:var(--text2);line-height:1.45;margin:0}
+
+  /* ============= Modals ============= */
+  .modal-scrim{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);
+    z-index:50;display:flex;align-items:center;justify-content:center;
+    padding:24px;opacity:0;pointer-events:none;
+    transition:opacity 0.25s;
+  }
+  .modal-scrim.show{opacity:1;pointer-events:auto}
+  .modal{
+    background:var(--bg2);
+    border:1px solid var(--line2);
+    border-radius:16px;
+    width:100%;max-width:560px;
+    max-height:90vh;overflow-y:auto;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+    transform:scale(0.96);transition:transform 0.25s;
+  }
+  .modal-scrim.show .modal{transform:scale(1)}
+  .modal-head{
+    padding:20px 24px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .modal-head h3{font-family:var(--serif);font-size:22px;font-weight:500;margin:0}
+  .modal-head button{
+    width:32px;height:32px;border-radius:8px;
+    color:var(--text2);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-head button:hover{background:var(--bg3);color:var(--text)}
+  .modal-body{padding:22px 24px}
+  .modal-foot{
+    padding:16px 24px;border-top:1px solid var(--line);
+    display:flex;gap:10px;justify-content:flex-end;
+  }
+  .form-row{margin-bottom:14px}
+  .form-row label{
+    display:block;font-size:10px;letter-spacing:0.18em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;margin-bottom:6px;
+  }
+  .form-row input{
+    width:100%;padding:11px 13px;background:var(--bg3);
+    border:1px solid var(--line2);border-radius:8px;
+    color:var(--text);font-size:14px;
+  }
+  .form-row input:focus{outline:none;border-color:var(--gold)}
+  .upload-zone-d{
+    border:1.5px dashed var(--line2);
+    border-radius:10px;padding:24px 12px;text-align:center;
+    background:var(--bg3);cursor:pointer;
+    transition:border-color 0.2s;
+  }
+  .upload-zone-d:hover{border-color:var(--gold)}
+  .upload-zone-d.has{border-style:solid;border-color:var(--gold);padding:0;overflow:hidden}
+  .upload-zone-d img{width:100%;max-height:240px;object-fit:cover}
+  .upload-zone-d .ic{font-size:28px;margin-bottom:6px;color:var(--text3)}
+  .upload-zone-d .t{font-size:13px;color:var(--text);margin:0}
+  .upload-zone-d .h{font-size:11px;color:var(--text3);margin:4px 0 0}
+
+  .detail-img{
+    width:100%;
+    aspect-ratio:4/3;
+    background:var(--bg3);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:64px;color:var(--text3);
+    margin-bottom:18px;overflow:hidden;
+  }
+  .detail-img img{width:100%;height:100%;object-fit:cover}
+  .detail-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;
+  }
+  .detail-cell .lb{
+    font-size:10px;letter-spacing:0.18em;color:var(--text3);
+    text-transform:uppercase;font-weight:600;margin-bottom:4px;
+  }
+  .detail-cell .vl{font-size:14px;color:var(--text)}
+
+  /* ============= Toast ============= */
+  .toast-wrap{
+    position:fixed;bottom:24px;right:24px;z-index:90;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .toast{
+    background:var(--bg3);color:var(--text);
+    border:1px solid var(--gold-m);
+    padding:12px 18px;border-radius:10px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.4);
+    font-size:13px;display:flex;align-items:center;gap:10px;
+    animation:tIn 0.3s, tOut 0.3s 2.7s forwards;
+  }
+  .toast .ic{color:var(--gold)}
+  @keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes tOut{to{opacity:0;transform:translateX(20px)}}
+
+  .hidden{display:none !important}
+  .fade-in{animation:fIn 0.3s ease}
+  @keyframes fIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ============= Mobile ============= */
+  @media (max-width:1024px){
+    .stats-grid{grid-template-columns:repeat(2, 1fr)}
+    .shoes-grid{grid-template-columns:repeat(3, 1fr)}
+  }
+  @media (max-width:760px){
+    .sidebar{
+      position:fixed;left:0;top:0;height:100vh;
+      transform:translateX(-100%);
+      transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      box-shadow:0 0 40px rgba(0,0,0,0.5);
+    }
+    .sidebar.show{transform:translateX(0)}
+    .hamburger{display:flex}
+    .topbar{padding:14px 18px}
+    .content{padding:18px}
+    .stats-grid{grid-template-columns:repeat(2, 1fr);gap:10px}
+    .stat{padding:14px 14px}
+    .stat .num{font-size:32px}
+    .shoes-grid{grid-template-columns:repeat(2, 1fr)}
+    .healing-grid{grid-template-columns:repeat(2, 1fr)}
+    /* responsive tables */
+    .rt-head{display:none}
+    .rt-row{
+      grid-template-columns:64px 1fr;
+      grid-template-areas:
+        "thumb user"
+        "thumb shoe"
+        "order order"
+        "time time"
+        "actions actions";
+      gap:8px 14px;
+      padding:14px;
+    }
+    .rt-thumb{grid-area:thumb;width:64px;height:64px}
+    .rt-user{grid-area:user}
+    .rt-shoe{grid-area:shoe;font-size:12px;color:var(--text2)}
+    .rt-order{grid-area:order;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px}
+    .rt-time{grid-area:time}
+    .rt-actions{grid-area:actions;justify-content:flex-start;flex-wrap:wrap}
+    .ms-row{grid-template-columns:1fr 80px;grid-template-areas:"nm vt" "bar bar";gap:8px 14px}
+    .ms-row .nm{grid-area:nm} .ms-row .vt{grid-area:vt} .ms-bar{grid-area:bar}
+    .ms-row .vt-2{display:none}
+    .lb-row{grid-template-columns:36px 40px 1fr 70px;gap:10px;padding:14px;}
+    .lb-row .lb-rank-tag-w, .lb-row .lb-bar{display:none}
+    .lb-count{font-size:18px}
+    .topbar h1{font-size:20px}
+    .gift-row{padding:16px;flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============= Login ============= -->
+<div class="login" id="loginView">
+  <div class="login-card">
+    <div class="login-mark">
+      <div class="m">BOGA</div>
+      <div class="s">Brand · Console</div>
+    </div>
+    <h1 class="serif">管理後台</h1>
+    <p class="lead">請使用管理員信箱登入</p>
+    <form id="loginForm">
+      <div class="field">
+        <label>信箱</label>
+        <input type="email" id="loginEmail" placeholder="admin@boga.com" required />
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input type="password" id="loginPass" placeholder="••••••••" required minlength="6" />
+      </div>
+      <p class="err" id="loginErr"></p>
+      <button type="submit" class="btn-gold" id="loginSubmit">登 入</button>
+      <button type="button" class="btn-ghost" id="loginDemo">以 Demo 模式體驗</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============= Shell ============= -->
+<div class="shell hidden" id="shellView">
+  <div class="scrim" id="sbScrim"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-mark">
+      <div class="m">BOGA</div>
+      <div class="s">Brand Console</div>
+    </div>
+    <div class="sb-section-label">主 選 單</div>
+    <button class="nav-item active" data-page="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      總覽
+    </button>
+    <button class="nav-item" data-page="reviews">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      審核申請
+      <span class="nav-badge hidden" id="navReviewBadge">0</span>
+    </button>
+    <button class="nav-item" data-page="shoes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14s2-2 6-2 6 2 9 2v4H3z"/><path d="M3 14V8a3 3 0 0 1 6 0v3"/><circle cx="6" cy="18" r="1"/><circle cx="18" cy="18" r="1"/></svg>
+      鞋款管理
+    </button>
+    <button class="nav-item" data-page="members">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      會員管理
+    </button>
+    <button class="nav-item" data-page="gifts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      禮物管理
+    </button>
+    <div class="sb-foot">
+      <div class="av" id="adminAv">A</div>
+      <div class="ad-name" id="adminName">admin@boga.com</div>
+      <button class="sb-logout" id="adminLogout" title="登出">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0">
+        <button class="hamburger" id="hbBtn" aria-label="選單">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="crumb" id="pageCrumb">總 覽</div>
+          <h1 id="pageTitle">儀表板</h1>
+        </div>
+      </div>
+      <div class="right">
+        <span style="font-size:11px;letter-spacing:0.16em;color:var(--text3);text-transform:uppercase">即 時 同 步</span>
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- ========= Overview ========= -->
+      <div id="pgOverview" class="pg fade-in">
+        <div class="stats-grid">
+          <div class="stat card">
+            <div class="lab">總 會 員 數</div>
+            <div class="num gold" id="stMembers">—</div>
+            <div class="delta"><span class="pip"></span> 即時</div>
+          </div>
+          <div class="stat card">
+            <div class="lab">待 審 核 數</div>
+            <div class="num" id="stPending">—</div>
+            <div class="delta"><span class="pip"></span> 即時</div>
+          </div>
+          <div class="stat card">
+            <div class="lab">累 計 集 章 數</div>
+            <div class="num" id="stStamps">—</div>
+            <div class="delta"><span class="pip"></span> 即時</div>
+          </div>
+          <div class="stat card">
+            <div class="lab">禮 物 已 兌 換</div>
+            <div class="num" id="stGifts">—</div>
+            <div class="delta"><span class="pip"></span> 即時</div>
+          </div>
+        </div>
+
+        <div class="sh">
+          <h2>待審核 · 快速處理</h2>
+          <div class="actions">
+            <button class="btn-sm" id="goAllReviews">查看全部 →</button>
+          </div>
+        </div>
+        <div class="card review-table" style="margin-bottom:28px">
+          <div class="rt-head">
+            <div>照片</div><div>會員</div><div>鞋款</div><div>訂單</div><div>送審時間</div><div style="text-align:right">操作</div>
+          </div>
+          <div id="quickReviewList"></div>
+        </div>
+
+        <div class="sh">
+          <h2>里程碑達成分佈</h2>
+          <span class="meta">Achievement</span>
+        </div>
+        <div class="card ms-card" id="msDistList"></div>
+      </div>
+
+      <!-- ========= Reviews ========= -->
+      <div id="pgReviews" class="pg hidden">
+        <div class="sh">
+          <h2>待 審 核 申 請</h2>
+          <span class="meta" id="pendingMeta">0 筆</span>
+        </div>
+        <div class="card review-table" style="margin-bottom:28px">
+          <div class="rt-head">
+            <div>照片</div><div>會員</div><div>鞋款</div><div>訂單</div><div>送審時間</div><div style="text-align:right">操作</div>
+          </div>
+          <div id="reviewList"></div>
+        </div>
+
+        <div class="sh">
+          <h2>近期審核紀錄</h2>
+          <span class="meta">Recent · 10</span>
+        </div>
+        <div class="card review-table">
+          <div class="rt-head">
+            <div>照片</div><div>會員</div><div>鞋款</div><div>訂單</div><div>狀態</div><div style="text-align:right">時間</div>
+          </div>
+          <div id="reviewedList"></div>
+        </div>
+      </div>
+
+      <!-- ========= Shoes ========= -->
+      <div id="pgShoes" class="pg hidden">
+        <div class="sh">
+          <h2>鞋 款 管 理</h2>
+          <div class="actions">
+            <button class="btn-sm primary" id="addShoeBtn">＋ 新增鞋款</button>
+          </div>
+        </div>
+        <div class="shoes-grid" id="shoesGrid"></div>
+      </div>
+
+      <!-- ========= Members ========= -->
+      <div id="pgMembers" class="pg hidden">
+        <div class="sh">
+          <h2>會 員 排 行 榜</h2>
+          <span class="meta" id="membersMeta">0 位</span>
+        </div>
+        <div class="card lb-table" id="lbTable"></div>
+      </div>
+
+      <!-- ========= Gifts ========= -->
+      <div id="pgGifts" class="pg hidden">
+        <div class="sh">
+          <h2>里程碑禮物</h2>
+          <div class="actions">
+            <span class="meta" id="giftStagesMeta" style="margin-right:14px">3 階段</span>
+            <button class="btn-sm primary" id="addGiftBtn">＋ 新增里程碑</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:28px">
+          <div id="giftStages"></div>
+        </div>
+
+        <div class="sh">
+          <h2>待處理兌換申請</h2>
+          <span class="meta" id="redemptionMeta">0 筆</span>
+        </div>
+        <div class="card" id="redemptionCard" style="margin-bottom:28px"></div>
+
+        <div class="sh">
+          <h2>療癒小卡庫</h2>
+          <span class="meta">8 張</span>
+        </div>
+        <div class="card">
+          <div class="healing-grid" id="healingGrid"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============= Modals ============= -->
+<div class="modal-scrim" id="detailScrim">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>申請詳情</h3>
+      <button id="dtClose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-img" id="dtImg">📸</div>
+      <div class="detail-grid">
+        <div class="detail-cell"><div class="lb">會員</div><div class="vl" id="dtUser">—</div></div>
+        <div class="detail-cell"><div class="lb">信箱</div><div class="vl" id="dtEmail">—</div></div>
+        <div class="detail-cell"><div class="lb">鞋款</div><div class="vl" id="dtShoe">—</div></div>
+        <div class="detail-cell"><div class="lb">SKU</div><div class="vl" id="dtSku">—</div></div>
+        <div class="detail-cell"><div class="lb">訂單編號</div><div class="vl" id="dtOrder">—</div></div>
+        <div class="detail-cell"><div class="lb">送審時間</div><div class="vl" id="dtTime">—</div></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm act-reject" id="dtReject">✕ 拒絕</button>
+      <button class="btn-sm primary" id="dtApprove">✓ 通過審核</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="addShoeScrim">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3 id="asTitle">新增鞋款</h3>
+      <button id="asClose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>鞋款名稱</label>
+        <input type="text" id="asName" placeholder="如 Velvet Bow" />
+      </div>
+      <div class="form-row">
+        <label>SKU</label>
+        <input type="text" id="asSku" placeholder="如 BG-013" />
+      </div>
+      <div class="form-row" id="asEmojiRow">
+        <label>備用圖示 Emoji（沒上傳照片時顯示）</label>
+        <input type="text" id="asEmoji" maxlength="4" placeholder="👠" />
+      </div>
+      <div class="form-row">
+        <label id="asPhotoLabel">主圖（選填）</label>
+        <label class="upload-zone-d" id="asZone">
+          <input type="file" id="asFile" accept="image/*" style="display:none" />
+          <div id="asPlaceholder">
+            <div class="ic">📸</div>
+            <p class="t">點擊上傳鞋款主圖</p>
+            <p class="h">JPG / PNG · 建議 800x800 以上 · 方形最佳</p>
+          </div>
+          <img id="asPreview" alt="" style="display:none" />
+        </label>
+        <button type="button" id="asRemovePhoto" class="btn-sm" style="margin-top:8px;width:100%;display:none">移除目前照片</button>
+      </div>
+    </div>
+    <div class="modal-foot" id="asFoot">
+      <button class="btn-sm act-reject" id="asDelete" style="margin-right:auto;display:none">🗑 刪除鞋款</button>
+      <button class="btn-sm" id="asCancel">取消</button>
+      <button class="btn-sm primary" id="asSubmit">新 增</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="giftEditScrim">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3 id="geTitle">新增里程碑</h3>
+      <button id="geClose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>達成門檻（雙）</label>
+        <input type="number" id="geMs" min="1" placeholder="如 5" />
+      </div>
+      <div class="form-row">
+        <label>圖示 Emoji</label>
+        <input type="text" id="geIc" maxlength="4" placeholder="🎁" />
+      </div>
+      <div class="form-row">
+        <label>禮物名稱</label>
+        <input type="text" id="geName" placeholder="如 購物金 $200" />
+      </div>
+      <div class="form-row">
+        <label>說明文字</label>
+        <input type="text" id="geDesc" placeholder="達成 5 雙集章解鎖" />
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm act-reject" id="geDelete" style="margin-right:auto;display:none">🗑 刪除</button>
+      <button class="btn-sm" id="geCancel">取消</button>
+      <button class="btn-sm primary" id="geSave">儲 存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="healEditScrim">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3>編輯療癒小卡</h3>
+      <button id="heClose"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>圖示 Emoji</label><input type="text" id="heDeco" maxlength="4" /></div>
+      <div class="form-row"><label>金言（一句話）</label><input type="text" id="heQuote" /></div>
+      <div class="form-row"><label>說明文字</label><input type="text" id="heBody" /></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sm" id="heCancel">取消</button>
+      <button class="btn-sm primary" id="heSave">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ============== Supabase Config ============== */
+const SUPABASE_URL = 'https://jkrzujnuwvlnqqyfbyeu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imprcnp1am51d3ZsbnFxeWZieWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODMwNzMsImV4cCI6MjA5MzU1OTA3M30.kmPDi_HLaZ5xhiRtZ09fCb7FbkkF-YbYBI23BaeZH6Y';
+const ADMIN_EMAILS = ['duck11230@gmail.com', 'boga20140614@gmail.com'];
+const ADMIN_EMAIL = ADMIN_EMAILS[0]; // legacy compat
+
+const HAS_SUPABASE = SUPABASE_URL && SUPABASE_URL.startsWith('http') &&
+                     SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 20;
+const sb = HAS_SUPABASE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const $  = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+/* ============== Data ============== */
+const state = {
+  isDemo:false,
+  admin:null,
+  shoes:[],
+  stamps:[],         // all stamps (admin can see all)
+  profiles:[],       // all members
+  healingCards:[
+    { deco:'🌸', quote:'每一步都算數', body:'你比你想的更勇敢，謝謝你選擇 BOGA 陪著你走。' },
+    { deco:'✨', quote:'你值得最好的', body:'這雙鞋記錄了你的某個時刻，好好珍惜它。' },
+    { deco:'🌙', quote:'慢慢來，你做到了', body:'不用急，每一雙都是你給自己的禮物。' },
+    { deco:'🦋', quote:'蛻變從腳下開始', body:'每次穿上 BOGA，都是最美的自己。' },
+    { deco:'🌿', quote:'穩穩地，往前走', body:'高跟鞋教會我們：挺直了，世界都不一樣。' },
+    { deco:'💫', quote:'收藏的是心情', body:'這不只是一雙鞋，是你某天的勇氣。' },
+    { deco:'🎀', quote:'美麗是一種選擇', body:'每次選擇穿上 BOGA，都是選擇了更好的自己。' },
+    { deco:'🌺', quote:'你的步伐，你的節奏', body:'不用跟任何人比，走你自己最美的那條路。' },
+  ],
+  giftStages:[
+    { ms:5,  ic:'💰', name:'購物金 $200', desc:'達成 5 雙集章解鎖' },
+    { ms:10, ic:'👗', name:'服飾商品乙件', desc:'達成 10 雙集章解鎖' },
+    { ms:15, ic:'👠', name:'任選 BOGA 鞋款', desc:'達成 15 雙集章解鎖' },
+  ],
+  detailStampId:null,
+  asFile:null,
+  asMode:'add',
+  asEditId:null,
+  asPhotoCleared:false,
+  editHealIdx:-1,
+  editGiftIdx:-1,    // -1 = adding new
+};
+
+/* ============== Demo seed ============== */
+const DEMO_SHOES = [
+  { id:1, name:'Noir Classic', sku:'BG-001', emoji:'👠' },
+  { id:2, name:'Rose Nude',    sku:'BG-002', emoji:'👠' },
+  { id:3, name:'Ivory Sling',  sku:'BG-003', emoji:'👡' },
+  { id:4, name:'Black Ankle',  sku:'BG-004', emoji:'👢' },
+  { id:5, name:'Caramel Mule', sku:'BG-005', emoji:'👠' },
+  { id:6, name:'Cherry Pump',  sku:'BG-006', emoji:'👡' },
+  { id:7, name:'Sand Kitten',  sku:'BG-007', emoji:'👠' },
+  { id:8, name:'Onyx Block',   sku:'BG-008', emoji:'👢' },
+  { id:9, name:'Milk Strap',   sku:'BG-009', emoji:'👡' },
+  { id:10, name:'Plum Heel',   sku:'BG-010', emoji:'👠' },
+  { id:11, name:'Rust Square', sku:'BG-011', emoji:'👡' },
+  { id:12, name:'Snow Mule',   sku:'BG-012', emoji:'👠' },
+];
+const DEMO_PROFILES = [
+  { id:'u1', full_name:'王小美', email:'mei@example.com' },
+  { id:'u2', full_name:'林雨欣', email:'yuxin@example.com' },
+  { id:'u3', full_name:'陳曉昕', email:'xiaoxin@example.com' },
+  { id:'u4', full_name:'李宛君', email:'wanjun@example.com' },
+  { id:'u5', full_name:'黃詩涵', email:'shihhan@example.com' },
+  { id:'u6', full_name:'張品妍', email:'pinyen@example.com' },
+];
+function seedDemoData(){
+  state.shoes = [...DEMO_SHOES];
+  state.profiles = [...DEMO_PROFILES];
+  // generate sample stamps
+  const stamps = [];
+  let id = 100;
+  // u1: 12 approved stamps (approaching legend)
+  [1,2,3,4,5,6,7,8,9,10,11,12].forEach((sid,i) => {
+    stamps.push({ id:++id, user_id:'u1', shoe_id:sid, status:'approved',
+      order_number:'BG-A'+(1000+id), photo_url:null,
+      created_at:new Date(Date.now()-86400000*(20-i)).toISOString() });
+  });
+  // u2: 7 approved
+  [1,3,5,7,9,11,2].forEach((sid,i) => {
+    stamps.push({ id:++id, user_id:'u2', shoe_id:sid, status:'approved',
+      order_number:'BG-A'+(1000+id), photo_url:null,
+      created_at:new Date(Date.now()-86400000*(15-i)).toISOString() });
+  });
+  // u3: 4 approved
+  [2,4,6,8].forEach((sid,i) => {
+    stamps.push({ id:++id, user_id:'u3', shoe_id:sid, status:'approved',
+      order_number:'BG-A'+(1000+id), photo_url:null,
+      created_at:new Date(Date.now()-86400000*(10-i)).toISOString() });
+  });
+  // u4: 2 approved
+  [1,5].forEach((sid,i) => {
+    stamps.push({ id:++id, user_id:'u4', shoe_id:sid, status:'approved',
+      order_number:'BG-A'+(1000+id), photo_url:null,
+      created_at:new Date(Date.now()-86400000*(5-i)).toISOString() });
+  });
+  // u5: 9 approved
+  [1,2,3,4,5,6,7,8,9].forEach((sid,i) => {
+    stamps.push({ id:++id, user_id:'u5', shoe_id:sid, status:'approved',
+      order_number:'BG-A'+(1000+id), photo_url:null,
+      created_at:new Date(Date.now()-86400000*(20-i)).toISOString() });
+  });
+  // pending applications
+  stamps.push({ id:++id, user_id:'u1', shoe_id:13 || 6, status:'pending', shoe_id:6,
+    order_number:'BG-P2026-0145', photo_url:null,
+    created_at:new Date(Date.now()-3600000).toISOString() });
+  stamps.push({ id:++id, user_id:'u2', shoe_id:8, status:'pending',
+    order_number:'BG-P2026-0146', photo_url:null,
+    created_at:new Date(Date.now()-7200000).toISOString() });
+  stamps.push({ id:++id, user_id:'u3', shoe_id:10, status:'pending',
+    order_number:'BG-P2026-0147', photo_url:null,
+    created_at:new Date(Date.now()-9000000).toISOString() });
+  stamps.push({ id:++id, user_id:'u6', shoe_id:1, status:'pending',
+    order_number:'BG-P2026-0148', photo_url:null,
+    created_at:new Date(Date.now()-12000000).toISOString() });
+  stamps.push({ id:++id, user_id:'u4', shoe_id:11, status:'pending',
+    order_number:'BG-P2026-0149', photo_url:null,
+    created_at:new Date(Date.now()-18000000).toISOString() });
+  state.stamps = stamps;
+}
+
+/* ============== Helpers ============== */
+function toast(msg, ic='✓'){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="ic">${ic}</span><span>${msg}</span>`;
+  $('#toastWrap').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+function timeAgo(iso){
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if(diff < 60) return '剛剛';
+  if(diff < 3600) return Math.floor(diff/60) + ' 分鐘前';
+  if(diff < 86400) return Math.floor(diff/3600) + ' 小時前';
+  return Math.floor(diff/86400) + ' 天前';
+}
+function approvedCountFor(uid){
+  return state.stamps.filter(s => s.user_id === uid && s.status === 'approved').length;
+}
+function rankForCount(n){
+  if(n >= 15) return { full:'傳奇 · Legend', short:'傳奇' };
+  if(n >= 10) return { full:'鑑賞家 · Connoisseur', short:'鑑賞家' };
+  if(n >= 5)  return { full:'收藏家 · Collector', short:'收藏家' };
+  return { full:'新入門 · Initiate', short:'新入門' };
+}
+
+/* ============== Login ============== */
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('#loginEmail').value.trim();
+  const pass  = $('#loginPass').value;
+  $('#loginErr').textContent = '';
+
+  if(!HAS_SUPABASE){
+    $('#loginErr').textContent = '尚未設定 Supabase — 請改用 Demo 模式體驗。';
+    return;
+  }
+  if(!ADMIN_EMAILS.includes(email)){
+    $('#loginErr').textContent = '此信箱無管理員權限。';
+    return;
+  }
+  $('#loginSubmit').disabled = true;
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if(error) throw error;
+    state.admin = { email: data.user.email };
+    await loadAll();
+    subscribeRealtime();
+    enterShell();
+  } catch(err){
+    $('#loginErr').textContent = err.message || '登入失敗';
+  } finally {
+    $('#loginSubmit').disabled = false;
+  }
+});
+
+$('#loginDemo').onclick = () => {
+  state.isDemo = true;
+  state.admin = { email:'demo@boga.com', isDemo:true };
+  seedDemoData();
+  enterShell();
+};
+
+function enterShell(){
+  $('#loginView').classList.add('hidden');
+  $('#shellView').classList.remove('hidden');
+  $('#adminName').textContent = state.admin.email;
+  $('#adminAv').textContent = state.admin.email.charAt(0).toUpperCase();
+  switchPage('overview');
+  renderAll();
+}
+
+/* ============== Loading ============== */
+async function loadAll(){
+  if(!HAS_SUPABASE || state.isDemo) return;
+  try {
+    const [shoesRes, stampsRes, profsRes] = await Promise.all([
+      sb.from('shoes').select('*').order('id'),
+      sb.from('stamps').select('*').order('created_at',{ascending:false}),
+      sb.from('profiles').select('*'),
+    ]);
+    state.shoes    = shoesRes.data || [];
+    state.stamps   = stampsRes.data || [];
+    state.profiles = profsRes.data || [];
+  } catch(e){
+    console.warn('load failed:', e);
+  }
+}
+
+function subscribeRealtime(){
+  if(!HAS_SUPABASE || state.isDemo) return;
+  try {
+    sb.channel('admin-stamps')
+      .on('postgres_changes',{ event:'*', schema:'public', table:'stamps' }, payload => {
+        if(payload.eventType === 'INSERT'){
+          state.stamps.unshift(payload.new);
+        } else if(payload.eventType === 'UPDATE'){
+          const i = state.stamps.findIndex(s => s.id === payload.new.id);
+          if(i >= 0) state.stamps[i] = payload.new;
+          else state.stamps.unshift(payload.new);
+        }
+        renderAll();
+      })
+      .on('postgres_changes',{ event:'INSERT', schema:'public', table:'profiles' }, payload => {
+        state.profiles.push(payload.new);
+        renderAll();
+      })
+      .subscribe();
+  } catch(e){ console.warn('rt fail:', e); }
+}
+
+/* ============== Navigation ============== */
+$$('.nav-item').forEach(b => b.onclick = () => switchPage(b.dataset.page));
+$('#hbBtn').onclick = () => { $('#sidebar').classList.add('show'); $('#sbScrim').classList.add('show'); };
+$('#sbScrim').onclick = () => { $('#sidebar').classList.remove('show'); $('#sbScrim').classList.remove('show'); };
+$('#goAllReviews').onclick = () => switchPage('reviews');
+
+const PAGE_TITLES = {
+  overview:{ crumb:'總 覽',     title:'儀表板' },
+  reviews: { crumb:'審 核',     title:'審核申請' },
+  shoes:   { crumb:'鞋 款',     title:'鞋款管理' },
+  members: { crumb:'會 員',     title:'會員排行' },
+  gifts:   { crumb:'禮 物',     title:'禮物管理' },
+};
+function switchPage(p){
+  $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === p));
+  $$('.pg').forEach(el => el.classList.add('hidden'));
+  const map = { overview:'#pgOverview', reviews:'#pgReviews', shoes:'#pgShoes', members:'#pgMembers', gifts:'#pgGifts' };
+  const el = $(map[p]);
+  if(el){ el.classList.remove('hidden'); el.classList.add('fade-in'); setTimeout(()=>el.classList.remove('fade-in'),300); }
+  $('#pageCrumb').textContent = PAGE_TITLES[p].crumb;
+  $('#pageTitle').textContent = PAGE_TITLES[p].title;
+  // close mobile sidebar
+  $('#sidebar').classList.remove('show'); $('#sbScrim').classList.remove('show');
+  renderAll();
+}
+
+/* ============== Render ============== */
+function renderAll(){
+  renderOverview();
+  renderReviews();
+  renderShoes();
+  renderMembers();
+  renderGifts();
+
+  const pendingCount = state.stamps.filter(s => s.status === 'pending').length;
+  const badge = $('#navReviewBadge');
+  if(pendingCount > 0){
+    badge.classList.remove('hidden');
+    badge.textContent = pendingCount;
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function renderOverview(){
+  const totalMembers = state.profiles.length;
+  const pending = state.stamps.filter(s => s.status === 'pending').length;
+  const stamps = state.stamps.filter(s => s.status === 'approved').length;
+  $('#stMembers').textContent = totalMembers;
+  $('#stPending').textContent = pending;
+  $('#stStamps').textContent  = stamps;
+  $('#stGifts').textContent   = '0';   // Gifts redemption tracking is admin-managed externally for v1
+
+  // quick review (latest 5 pending)
+  const list = $('#quickReviewList');
+  const q = state.stamps.filter(s => s.status==='pending').slice(0,5);
+  if(!q.length){
+    list.innerHTML = `<div class="empty"><div class="ic">✓</div><div>目前沒有待審核項目</div></div>`;
+  } else {
+    list.innerHTML = '';
+    q.forEach(st => list.appendChild(reviewRow(st, true)));
+  }
+
+  // milestone distribution
+  const counts = state.profiles.map(p => approvedCountFor(p.id));
+  const collectors  = counts.filter(c => c >= 5  && c < 10).length;
+  const connoisseurs= counts.filter(c => c >= 10 && c < 15).length;
+  const legends     = counts.filter(c => c >= 15).length;
+  const total = state.profiles.length || 1;
+  const ms = [
+    { name:'收藏家', sub:'Collector · 5 雙', count:collectors,   pct:(collectors/total)*100 },
+    { name:'鑑賞家', sub:'Connoisseur · 10 雙', count:connoisseurs, pct:(connoisseurs/total)*100 },
+    { name:'傳奇',   sub:'Legend · 15 雙', count:legends,        pct:(legends/total)*100 },
+  ];
+  const ml = $('#msDistList');
+  ml.innerHTML = '';
+  ms.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'ms-row';
+    row.innerHTML = `
+      <div class="nm">${m.name}<div class="sub">${m.sub}</div></div>
+      <div class="ms-bar"><div class="fill" style="width:${m.pct}%"></div></div>
+      <div class="vt">${m.count}<div class="sm">已 達 成</div></div>
+      <div class="vt vt-2">0<div class="sm">已 兌 換</div></div>`;
+    ml.appendChild(row);
+  });
+}
+
+function reviewRow(stamp, withDetail){
+  const profile = state.profiles.find(p => p.id === stamp.user_id);
+  const shoe = state.shoes.find(s => s.id === stamp.shoe_id);
+  const row = document.createElement('div');
+  row.className = 'rt-row';
+  const thumb = stamp.photo_url
+    ? `<img src="${stamp.photo_url}" alt="">`
+    : `<span>📸</span>`;
+  row.innerHTML = `
+    <div class="rt-thumb">${thumb}</div>
+    <div class="rt-user">
+      <p class="nm">${profile?.full_name || '匿名'}</p>
+      <p class="em">${profile?.email || '—'}</p>
+    </div>
+    <div class="rt-shoe">${shoe?.name || '—'}<div class="sk">${shoe?.sku || ''}</div></div>
+    <div class="rt-order">${stamp.order_number}</div>
+    <div class="rt-time">${timeAgo(stamp.created_at)}</div>
+    <div class="rt-actions">
+      <button class="act-btn act-approve" data-act="approve">✓ 通過</button>
+      <button class="act-btn act-reject" data-act="reject">✕ 拒絕</button>
+      ${withDetail ? '<button class="act-btn act-detail" data-act="detail">詳情</button>' : ''}
+    </div>`;
+  row.querySelectorAll('[data-act]').forEach(btn => btn.onclick = (e) => {
+    e.stopPropagation();
+    const act = btn.dataset.act;
+    if(act === 'approve') handleReview(stamp.id, 'approved');
+    else if(act === 'reject') handleReview(stamp.id, 'rejected');
+    else if(act === 'detail') openDetail(stamp.id);
+  });
+  return row;
+}
+
+function reviewedRow(stamp){
+  const profile = state.profiles.find(p => p.id === stamp.user_id);
+  const shoe = state.shoes.find(s => s.id === stamp.shoe_id);
+  const row = document.createElement('div');
+  row.className = 'rt-row';
+  const thumb = stamp.photo_url ? `<img src="${stamp.photo_url}" alt="">` : `<span>${shoe?.emoji || '👠'}</span>`;
+  const stTxt = stamp.status === 'approved' ? '✓ 已通過' : '✕ 已拒絕';
+  const stColor = stamp.status === 'approved' ? 'var(--green)' : 'var(--red)';
+  row.innerHTML = `
+    <div class="rt-thumb">${thumb}</div>
+    <div class="rt-user"><p class="nm">${profile?.full_name || '—'}</p><p class="em">${profile?.email || '—'}</p></div>
+    <div class="rt-shoe">${shoe?.name || '—'}<div class="sk">${shoe?.sku || ''}</div></div>
+    <div class="rt-order">${stamp.order_number}</div>
+    <div class="rt-time" style="color:${stColor};font-weight:600">${stTxt}</div>
+    <div class="rt-time" style="text-align:right">${timeAgo(stamp.reviewed_at || stamp.created_at)}</div>`;
+  return row;
+}
+
+function renderReviews(){
+  const pending = state.stamps.filter(s => s.status === 'pending');
+  $('#pendingMeta').textContent = `${pending.length} 筆`;
+  const list = $('#reviewList');
+  if(!pending.length){
+    list.innerHTML = `<div class="empty"><div class="ic">✓</div><div>目前沒有待審核項目</div></div>`;
+  } else {
+    list.innerHTML = '';
+    pending.forEach(s => list.appendChild(reviewRow(s, true)));
+  }
+
+  const reviewed = state.stamps.filter(s => s.status !== 'pending').slice(0,10);
+  const rl = $('#reviewedList');
+  if(!reviewed.length){
+    rl.innerHTML = `<div class="empty"><div class="ic">📋</div><div>尚無審核紀錄</div></div>`;
+  } else {
+    rl.innerHTML = '';
+    reviewed.forEach(s => rl.appendChild(reviewedRow(s)));
+  }
+}
+
+async function handleReview(stampId, status){
+  const idx = state.stamps.findIndex(s => s.id === stampId);
+  if(idx < 0) return;
+  const stamp = state.stamps[idx];
+  // optimistic
+  stamp.status = status;
+  stamp.reviewed_at = new Date().toISOString();
+  renderAll();
+
+  if(HAS_SUPABASE && !state.isDemo){
+    try {
+      await sb.from('stamps').update({ status, reviewed_at: stamp.reviewed_at }).eq('id', stampId);
+    } catch(e){
+      toast('更新失敗，請重試', '✕');
+      return;
+    }
+  }
+  toast(status === 'approved' ? '已通過審核 ✓' : '已拒絕申請');
+}
+
+/* ============== Detail modal ============== */
+function openDetail(stampId){
+  const stamp = state.stamps.find(s => s.id === stampId);
+  if(!stamp) return;
+  state.detailStampId = stampId;
+  const profile = state.profiles.find(p => p.id === stamp.user_id);
+  const shoe = state.shoes.find(s => s.id === stamp.shoe_id);
+  $('#dtUser').textContent  = profile?.full_name || '匿名';
+  $('#dtEmail').textContent = profile?.email || '—';
+  $('#dtShoe').textContent  = shoe?.name || '—';
+  $('#dtSku').textContent   = shoe?.sku || '—';
+  $('#dtOrder').textContent = stamp.order_number;
+  $('#dtTime').textContent  = new Date(stamp.created_at).toLocaleString('zh-TW');
+  const img = $('#dtImg');
+  img.innerHTML = stamp.photo_url ? `<img src="${stamp.photo_url}" alt="">` : '📸';
+  $('#detailScrim').classList.add('show');
+}
+$('#dtClose').onclick = () => $('#detailScrim').classList.remove('show');
+$('#detailScrim').onclick = e => { if(e.target.id === 'detailScrim') $('#detailScrim').classList.remove('show'); };
+$('#dtApprove').onclick = () => { handleReview(state.detailStampId, 'approved'); $('#detailScrim').classList.remove('show'); };
+$('#dtReject').onclick  = () => { handleReview(state.detailStampId, 'rejected'); $('#detailScrim').classList.remove('show'); };
+
+/* ============== Shoes management ============== */
+function renderShoes(){
+  const grid = $('#shoesGrid');
+  grid.innerHTML = '';
+  state.shoes.forEach(shoe => {
+    const count = state.stamps.filter(s => s.shoe_id === shoe.id && s.status === 'approved').length;
+    const card = document.createElement('div');
+    card.className = 'shoe-card';
+    const visual = shoe.image_url
+      ? `<img src="${shoe.image_url}" alt="">`
+      : `<span>${shoe.emoji || '👠'}</span>`;
+    card.innerHTML = `
+      <div class="vis">
+        ${visual}
+        <div class="vis-overlay">
+          <button class="vis-btn" data-act="edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            編輯
+          </button>
+          <button class="vis-btn" data-act="photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            換照片
+          </button>
+        </div>
+      </div>
+      <div class="info">
+        <p class="nm">${shoe.name}</p>
+        <div class="sk">${shoe.sku || ''}</div>
+        <div class="ct"><span>累計集章</span><span class="num">${count}</span></div>
+      </div>`;
+    card.querySelector('[data-act="edit"]').onclick = () => openEditShoe(shoe);
+    card.querySelector('[data-act="photo"]').onclick = () => openEditShoe(shoe, /*focusPhoto*/true);
+    grid.appendChild(card);
+  });
+  // add button
+  const add = document.createElement('button');
+  add.className = 'shoe-add';
+  add.innerHTML = `<div class="pl">＋</div><div class="lb">新增鞋款</div>`;
+  add.onclick = openAddShoe;
+  grid.appendChild(add);
+}
+
+$('#addShoeBtn').onclick = openAddShoe;
+function openAddShoe(){
+  state.asMode = 'add';
+  state.asEditId = null;
+  state.asFile = null;
+  state.asPhotoCleared = false;
+  $('#asTitle').textContent = '新增鞋款';
+  $('#asSubmit').textContent = '新 增';
+  $('#asDelete').style.display = 'none';
+  $('#asEmojiRow').style.display = 'block';
+  $('#asName').value = '';
+  $('#asSku').value = '';
+  $('#asEmoji').value = '👠';
+  $('#asPlaceholder').style.display = 'block';
+  $('#asPreview').style.display = 'none';
+  $('#asZone').classList.remove('has');
+  $('#asRemovePhoto').style.display = 'none';
+  $('#addShoeScrim').classList.add('show');
+}
+function openEditShoe(shoe){
+  state.asMode = 'edit';
+  state.asEditId = shoe.id;
+  state.asFile = null;
+  state.asPhotoCleared = false;
+  $('#asTitle').textContent = `編輯 · ${shoe.name}`;
+  $('#asSubmit').textContent = '儲 存';
+  $('#asDelete').style.display = 'inline-flex';
+  $('#asEmojiRow').style.display = 'block';
+  $('#asName').value = shoe.name || '';
+  $('#asSku').value = shoe.sku || '';
+  $('#asEmoji').value = shoe.emoji || '👠';
+  if(shoe.image_url){
+    $('#asPreview').src = shoe.image_url;
+    $('#asPreview').style.display = 'block';
+    $('#asPlaceholder').style.display = 'none';
+    $('#asZone').classList.add('has');
+    $('#asRemovePhoto').style.display = 'block';
+  } else {
+    $('#asPlaceholder').style.display = 'block';
+    $('#asPreview').style.display = 'none';
+    $('#asZone').classList.remove('has');
+    $('#asRemovePhoto').style.display = 'none';
+  }
+  $('#addShoeScrim').classList.add('show');
+}
+$('#asClose').onclick = $('#asCancel').onclick = () => $('#addShoeScrim').classList.remove('show');
+$('#addShoeScrim').onclick = e => { if(e.target.id === 'addShoeScrim') $('#addShoeScrim').classList.remove('show'); };
+$('#asZone').onclick = e => { if(e.target.tagName !== 'INPUT') $('#asFile').click(); };
+$('#asFile').addEventListener('change', e => {
+  const f = e.target.files?.[0]; if(!f) return;
+  state.asFile = f;
+  state.asPhotoCleared = false;
+  const url = URL.createObjectURL(f);
+  $('#asPreview').src = url;
+  $('#asPreview').style.display = 'block';
+  $('#asPlaceholder').style.display = 'none';
+  $('#asZone').classList.add('has');
+  $('#asRemovePhoto').style.display = state.asMode === 'edit' ? 'block' : 'none';
+});
+
+$('#asRemovePhoto').onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  state.asFile = null;
+  state.asPhotoCleared = true;
+  $('#asFile').value = '';
+  $('#asPreview').style.display = 'none';
+  $('#asPlaceholder').style.display = 'block';
+  $('#asZone').classList.remove('has');
+  $('#asRemovePhoto').style.display = 'none';
+};
+
+$('#asDelete').onclick = async () => {
+  if(state.asMode !== 'edit' || !state.asEditId) return;
+  const shoe = state.shoes.find(s => s.id === state.asEditId);
+  if(!shoe) return;
+  if(!confirm(`確定要刪除「${shoe.name}」嗎？\n此操作無法復原。`)) return;
+  try {
+    if(HAS_SUPABASE && !state.isDemo){
+      const { error } = await sb.from('shoes').delete().eq('id', state.asEditId);
+      if(error) throw error;
+    }
+    state.shoes = state.shoes.filter(s => s.id !== state.asEditId);
+    toast(`已刪除「${shoe.name}」`);
+    $('#addShoeScrim').classList.remove('show');
+    renderAll();
+  } catch(err){
+    toast('刪除失敗：' + (err.message || ''), '✕');
+  }
+};
+
+$('#asSubmit').onclick = async () => {
+  const name  = $('#asName').value.trim();
+  const sku   = $('#asSku').value.trim();
+  const emoji = $('#asEmoji').value.trim() || '👠';
+  if(!name){ toast('請輸入鞋款名稱', '✕'); return; }
+  const isEdit = state.asMode === 'edit';
+  $('#asSubmit').disabled = true;
+  const origLabel = isEdit ? '儲 存' : '新 增';
+  $('#asSubmit').textContent = isEdit ? '儲存中…' : '新增中…';
+  try {
+    if(HAS_SUPABASE && !state.isDemo){
+      let imageUrl = undefined; // undefined = leave unchanged
+      if(state.asFile){
+        const ext = state.asFile.name.split('.').pop().toLowerCase();
+        const path = `shoes/${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+        const { error: upErr } = await sb.storage.from('shoe-images').upload(path, state.asFile);
+        if(upErr) throw upErr;
+        imageUrl = sb.storage.from('shoe-images').getPublicUrl(path).data.publicUrl;
+      } else if(isEdit && state.asPhotoCleared){
+        imageUrl = null;
+      }
+      if(isEdit){
+        const payload = { name, sku: sku || null, emoji };
+        if(imageUrl !== undefined) payload.image_url = imageUrl;
+        const { data, error } = await sb.from('shoes').update(payload).eq('id', state.asEditId).select().single();
+        if(error) throw error;
+        const idx = state.shoes.findIndex(s => s.id === state.asEditId);
+        if(idx >= 0) state.shoes[idx] = data;
+      } else {
+        const { data, error } = await sb.from('shoes').insert({
+          name, sku: sku || null, emoji,
+          image_url: imageUrl ?? null, is_active: true,
+        }).select().single();
+        if(error) throw error;
+        state.shoes.push(data);
+      }
+    } else {
+      // demo mode
+      if(isEdit){
+        const idx = state.shoes.findIndex(s => s.id === state.asEditId);
+        if(idx >= 0){
+          const cur = state.shoes[idx];
+          state.shoes[idx] = {
+            ...cur, name, sku, emoji,
+            image_url: state.asFile ? URL.createObjectURL(state.asFile)
+                                    : (state.asPhotoCleared ? null : cur.image_url),
+          };
+        }
+      } else {
+        state.shoes.push({
+          id: state.shoes.length ? Math.max(...state.shoes.map(s=>s.id))+1 : 1,
+          name, sku, emoji,
+          image_url: state.asFile ? URL.createObjectURL(state.asFile) : null,
+        });
+      }
+    }
+    toast(isEdit ? `「${name}」已更新 ✓` : `「${name}」已新增 ✓`);
+    $('#addShoeScrim').classList.remove('show');
+    renderAll();
+  } catch(err){
+    console.error(err);
+    toast((isEdit ? '更新' : '新增') + '失敗：' + (err.message || '未知錯誤'), '✕');
+  } finally {
+    $('#asSubmit').disabled = false;
+    $('#asSubmit').textContent = origLabel;
+  }
+};
+
+/* ============== Members leaderboard ============== */
+function renderMembers(){
+  const enriched = state.profiles.map(p => ({
+    ...p, count: approvedCountFor(p.id),
+  })).sort((a,b) => b.count - a.count);
+  $('#membersMeta').textContent = `${enriched.length} 位`;
+  const tbl = $('#lbTable');
+  if(!enriched.length){
+    tbl.innerHTML = `<div class="empty"><div class="ic">👥</div><div>尚無會員</div></div>`;
+    return;
+  }
+  tbl.innerHTML = '';
+  enriched.forEach((m, i) => {
+    const r = rankForCount(m.count);
+    const pct = Math.min(100, (m.count/15)*100);
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (i===0 ? ' top1' : '');
+    row.innerHTML = `
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-av">${(m.full_name || '?').charAt(0)}</div>
+      <div class="lb-user"><p class="nm">${m.full_name || '匿名'}</p><p class="em">${m.email || '—'}</p></div>
+      <div class="lb-rank-tag-w"><span class="lb-rank-tag">${r.short}</span></div>
+      <div class="lb-bar"><div class="b"><div class="f" style="width:${pct}%"></div></div><span class="v">${m.count}/15</span></div>
+      <div class="lb-count">${m.count}</div>`;
+    tbl.appendChild(row);
+  });
+}
+
+/* ============== Gifts ============== */
+function renderGifts(){
+  // stages
+  const sg = $('#giftStages');
+  sg.innerHTML = '';
+  // sort by milestone for display
+  const sorted = [...state.giftStages].sort((a,b) => a.ms - b.ms);
+  state.giftStages = sorted;
+  $('#giftStagesMeta').textContent = `${sorted.length} 階段`;
+
+  if(!sorted.length){
+    sg.innerHTML = `<div class="empty"><div class="ic">🎁</div><div>尚未設定任何里程碑禮物<br><small style="opacity:0.7">點右上角「＋ 新增里程碑」開始設定</small></div></div>`;
+  } else {
+    sorted.forEach((g, i) => {
+      const row = document.createElement('div');
+      row.className = 'gift-row';
+      const stageLabel = `等 級 ${i+1} · ${g.ms} 雙`;
+      row.innerHTML = `
+        <div class="gift-ic">${g.ic}</div>
+        <div class="gift-info">
+          <div class="stage">${stageLabel}</div>
+          <p class="nm">${g.name}</p>
+          <p class="desc">${g.desc || ''}</p>
+        </div>
+        <button class="btn-sm" data-edit="${i}">編 輯</button>`;
+      row.querySelector('[data-edit]').onclick = () => openGiftEdit(i);
+      sg.appendChild(row);
+    });
+  }
+
+  // redemption (placeholder)
+  $('#redemptionMeta').textContent = '0 筆';
+  $('#redemptionCard').innerHTML = `<div class="empty"><div class="ic">🎁</div><div>目前沒有待處理的兌換申請</div></div>`;
+
+  // healing cards
+  const hg = $('#healingGrid');
+  hg.innerHTML = '';
+  state.healingCards.forEach((c, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'heal-c';
+    cell.innerHTML = `<div class="deco">${c.deco}</div><p class="qt">${c.quote}</p><p class="bd">${c.body}</p>`;
+    cell.onclick = () => openHealEdit(i);
+    hg.appendChild(cell);
+  });
+}
+
+/* ============== Gift milestone edit ============== */
+$('#addGiftBtn').onclick = () => openGiftEdit(-1);
+function openGiftEdit(idx){
+  state.editGiftIdx = idx;
+  const isNew = idx < 0;
+  $('#geTitle').textContent = isNew ? '新增里程碑' : '編輯里程碑';
+  $('#geDelete').style.display = isNew ? 'none' : 'inline-flex';
+  if(isNew){
+    // suggest a milestone above the current highest
+    const max = state.giftStages.reduce((m,g) => Math.max(m, g.ms), 0);
+    $('#geMs').value = max ? max + 5 : 5;
+    $('#geIc').value = '🎁';
+    $('#geName').value = '';
+    $('#geDesc').value = '';
+  } else {
+    const g = state.giftStages[idx];
+    $('#geMs').value   = g.ms;
+    $('#geIc').value   = g.ic;
+    $('#geName').value = g.name;
+    $('#geDesc').value = g.desc || '';
+  }
+  $('#giftEditScrim').classList.add('show');
+}
+$('#geClose').onclick = $('#geCancel').onclick = () => $('#giftEditScrim').classList.remove('show');
+$('#giftEditScrim').onclick = e => { if(e.target.id === 'giftEditScrim') $('#giftEditScrim').classList.remove('show'); };
+$('#geSave').onclick = () => {
+  const ms = parseInt($('#geMs').value, 10);
+  const ic = $('#geIc').value.trim() || '🎁';
+  const name = $('#geName').value.trim();
+  const desc = $('#geDesc').value.trim();
+  if(!ms || ms < 1){ toast('請輸入有效的達成門檻', '✕'); return; }
+  if(!name){ toast('請輸入禮物名稱', '✕'); return; }
+  const stage = { ms, ic, name, desc: desc || `達成 ${ms} 雙集章解鎖` };
+  if(state.editGiftIdx < 0){
+    state.giftStages.push(stage);
+    toast(`已新增「${name}」里程碑`);
+  } else {
+    state.giftStages[state.editGiftIdx] = stage;
+    toast('里程碑已更新 ✓');
+  }
+  saveGiftStages();
+  $('#giftEditScrim').classList.remove('show');
+  renderGifts();
+};
+$('#geDelete').onclick = () => {
+  const i = state.editGiftIdx;
+  if(i < 0) return;
+  const g = state.giftStages[i];
+  if(!confirm(`確定要刪除「${g.name}」這個里程碑嗎？`)) return;
+  state.giftStages.splice(i, 1);
+  saveGiftStages();
+  toast('已刪除里程碑');
+  $('#giftEditScrim').classList.remove('show');
+  renderGifts();
+};
+function saveGiftStages(){
+  try { localStorage.setItem('boga_gift_stages', JSON.stringify(state.giftStages)); } catch(_){}
+}
+function loadGiftStages(){
+  try {
+    const raw = localStorage.getItem('boga_gift_stages');
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr) && arr.length) state.giftStages = arr;
+    }
+  } catch(_){}
+}
+loadGiftStages();
+
+function openHealEdit(idx){
+  const c = state.healingCards[idx];
+  state.editHealIdx = idx;
+  $('#heDeco').value = c.deco;
+  $('#heQuote').value = c.quote;
+  $('#heBody').value = c.body;
+  $('#healEditScrim').classList.add('show');
+}
+$('#heClose').onclick = $('#heCancel').onclick = () => $('#healEditScrim').classList.remove('show');
+$('#healEditScrim').onclick = e => { if(e.target.id === 'healEditScrim') $('#healEditScrim').classList.remove('show'); };
+$('#heSave').onclick = () => {
+  const i = state.editHealIdx;
+  state.healingCards[i] = {
+    deco:  $('#heDeco').value || '🌸',
+    quote: $('#heQuote').value || '',
+    body:  $('#heBody').value || '',
+  };
+  $('#healEditScrim').classList.remove('show');
+  toast('療癒小卡已更新');
+  renderGifts();
+};
+
+/* ============== Logout ============== */
+$('#adminLogout').onclick = async () => {
+  if(HAS_SUPABASE && !state.isDemo){
+    try { await sb.auth.signOut(); } catch(_){}
+  }
+  Object.assign(state, { admin:null, isDemo:false, shoes:[], stamps:[], profiles:[] });
+  $('#shellView').classList.add('hidden');
+  $('#loginView').classList.remove('hidden');
+  $('#loginPass').value = '';
+};
+
+/* ============== Bootstrap ============== */
+(async () => {
+  if(!HAS_SUPABASE) return;
+  try {
+    const { data } = await sb.auth.getSession();
+    if(data?.session?.user && ADMIN_EMAILS.includes(data.session.user.email)){
+      state.admin = { email: data.session.user.email };
+      await loadAll();
+      subscribeRealtime();
+      enterShell();
+    }
+  } catch(_){}
+})();
+</script>
+</body>
+</html>
